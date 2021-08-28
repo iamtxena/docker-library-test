@@ -1,6 +1,5 @@
 FROM frolvlad/alpine-glibc:alpine-3.14 as alpine-miniconda
 
-# Installing Conda
 # Leave these args here to better use the Docker build cache
 ARG CONDA_VERSION=py39_4.10.3
 ARG SHA256SUM=1ea2f885b4dbc3098662845560bc64271eb17085387a70c2ba3f29fff6f8d52f
@@ -60,28 +59,24 @@ ADD requirements.txt .
 RUN pip install -r requirements.txt
 COPY src src
 
-# COPY ./qibo_test.py .
+ENV USER=docker
+ENV GROUP=docker
+ENV UID=12345
+ENV GID=23456
 
-# ENV USER=docker
-# ENV GROUP=docker
-# ENV UID=12345
-# ENV GID=23456
+RUN addgroup \
+  -g "$GID" "$GROUP"
 
-# RUN addgroup \
-#   -g "$GID" "$GROUP"
+RUN adduser \
+  --disabled-password \
+  --gecos "" \
+  --home "$(pwd)" \
+  --ingroup "$USER" \
+  --no-create-home \
+  --uid "$UID" \
+  "$USER"
 
-# RUN adduser \
-#   --disabled-password \
-#   --gecos "" \
-#   --home "$(pwd)" \
-#   --ingroup "$USER" \
-#   --no-create-home \
-#   --uid "$UID" \
-#   "$USER"
+RUN chown docker:docker ${PROJECT_DIR}
+USER docker
 
-# RUN chown docker:docker ${PROJECT_DIR}
-# USER docker
-
-# CMD ["flask","run"]
-# CMD ["python", "src/api.py"]
 CMD ["flask","run"]
