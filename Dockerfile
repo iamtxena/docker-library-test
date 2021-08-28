@@ -31,32 +31,26 @@ RUN conda install scipy numpy matplotlib sympy
 
 RUN pip install --upgrade pip
 
-FROM alpine-miniconda
-
-ENV PATH /bin:/sbin:/usr/bin:$PATH
-ENV PATH /opt/conda/bin:$PATH
-RUN conda init
-# RUN pip install qibo
+FROM alpine-miniconda as alpine-miniconda-qibo
 
 ENV PROJECT_DIR /usr/src/code
 WORKDIR ${PROJECT_DIR}
 
-COPY . .
-RUN chmod +x ./scripts/install_qibo_libs.sh
-RUN ./scripts/install_qibo_libs.sh
+ENV PATH /bin:/sbin:/usr/bin:$PATH
+ENV PATH /opt/conda/bin:$PATH
+RUN conda init
 
-# RUN apk add --no-cache --virtual .build-deps \
-#   gcc musl-dev linux-headers \
-#   build-base python3-dev
+RUN cd /usr/src && \
+  git clone https://github.com/qilimanjaro-tech/qibo.git && \
+  cd qibo && \
+  git checkout qilimanjaro-backend && \
+  pip install .
 
-# RUN apk add bash
-# RUN pip install --upgrade pip
-# COPY requirements.txt requirements.txt
-# RUN pip install --no-cache-dir \
-#   -r requirements.txt
-# # Delete build dependencies
-# RUN apk del .build-deps
+FROM alpine-miniconda-qibo
 
+ADD requirements.txt .
+RUN pip install -r requirements.txt
+COPY src src
 
 # COPY ./qibo_test.py .
 
@@ -80,5 +74,6 @@ RUN ./scripts/install_qibo_libs.sh
 # RUN chown docker:docker ${PROJECT_DIR}
 # USER docker
 
-CMD ["python", "src/qibo_test.py"]
-# CMD ["/bin/bash"]
+# CMD ["flask","run"]
+# CMD ["python", "src/api.py"]
+CMD ["flask","run"]
