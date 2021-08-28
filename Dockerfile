@@ -1,9 +1,13 @@
-FROM frolvlad/alpine-glibc:alpine-3.14
+FROM frolvlad/alpine-glibc:alpine-3.14 as alpine-miniconda
 
 # Installing Conda
 # Leave these args here to better use the Docker build cache
 ARG CONDA_VERSION=py39_4.10.3
 ARG SHA256SUM=1ea2f885b4dbc3098662845560bc64271eb17085387a70c2ba3f29fff6f8d52f
+
+RUN apk update
+RUN apk add bash
+RUN apk add git
 
 # hadolint ignore=DL3018
 RUN apk add -q --no-cache bash procps && \
@@ -23,14 +27,23 @@ RUN apk add -q --no-cache bash procps && \
 ENV PATH /bin:/sbin:/usr/bin:$PATH
 ENV PATH /opt/conda/bin:$PATH
 RUN conda init
-RUN conda install scipy numpy matplotlib
+RUN conda install scipy numpy matplotlib sympy
 
-RUN apk add bash
 RUN pip install --upgrade pip
-RUN pip install qibo
 
-RUN apk update
-RUN apk add bash
+FROM alpine-miniconda
+
+ENV PATH /bin:/sbin:/usr/bin:$PATH
+ENV PATH /opt/conda/bin:$PATH
+RUN conda init
+# RUN pip install qibo
+
+ENV PROJECT_DIR /usr/src/code
+WORKDIR ${PROJECT_DIR}
+
+COPY . .
+RUN chmod +x ./scripts/install_qibo_libs.sh
+RUN ./scripts/install_qibo_libs.sh
 
 # RUN apk add --no-cache --virtual .build-deps \
 #   gcc musl-dev linux-headers \
@@ -44,10 +57,8 @@ RUN apk add bash
 # # Delete build dependencies
 # RUN apk del .build-deps
 
-ENV PROJECT_DIR /usr/src/code
-WORKDIR ${PROJECT_DIR}
 
-COPY ./qibo_test.py .
+# COPY ./qibo_test.py .
 
 # ENV USER=docker
 # ENV GROUP=docker
@@ -69,4 +80,5 @@ COPY ./qibo_test.py .
 # RUN chown docker:docker ${PROJECT_DIR}
 # USER docker
 
-CMD ["python", "qibo_test.py"]
+CMD ["python", "src/qibo_test.py"]
+# CMD ["/bin/bash"]
