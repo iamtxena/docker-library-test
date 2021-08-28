@@ -9,7 +9,7 @@ from qilimanjaroq.circuit import RemoteCircuit
 class TestQibo():
 
     def execute_circuit(self) -> dict:
-
+        qibo.set_backend('numpy')
         # Construct the circuit
         c = Circuit(2)
         # Add some gates
