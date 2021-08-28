@@ -14,5 +14,11 @@ def test_qibo():
     return make_response(tqibo.execute_circuit(), 200)
 
 
+@app.route('/qili')
+def test_qili():
+    tqibo = TestQibo()
+    return make_response(tqibo.execute_qili_circuit(), 200)
+
+
 if __name__ == '__main__':
     app.run()

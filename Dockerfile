@@ -46,6 +46,14 @@ RUN cd /usr/src && \
   git checkout qilimanjaro-backend && \
   pip install .
 
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+RUN cd /usr/src && \
+  git clone https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/qilimanjaro-tech/qili-qibo-backend.git && \
+  cd qili-qibo-backend && \
+  git checkout QIBO30-qqs-connection && \
+  pip install .
+
 FROM alpine-miniconda-qibo
 
 ADD requirements.txt .
